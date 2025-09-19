@@ -1,0 +1,25 @@
+{
+  "name": "Mídia Perfil - Infraestrutura de IA",
+  "short_name": "Mídia Perfil",
+  "description": "Soluções de Infraestrutura de Inteligência Artificial para empresas em Angola",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#004AAD",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "pt-AO"
+}

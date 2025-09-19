@@ -1,0 +1,17 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo azul arredondado -->
+  <rect width="200" height="200" rx="45" ry="45" fill="url(#gradient)" />
+  
+  <!-- Gradiente azul -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E90FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#004AAD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066CC;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Letra "O" branca centralizada -->
+  <ellipse cx="100" cy="100" rx="45" ry="65" fill="white" />
+  <ellipse cx="100" cy="100" rx="20" ry="30" fill="url(#gradient)" />
+</svg>
