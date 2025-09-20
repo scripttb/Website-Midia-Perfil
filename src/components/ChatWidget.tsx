@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 're
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageCircle, Send, X, Bot, User } from 'lucide-react';
+import { Send, X, User } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -15,7 +15,7 @@ export interface ChatWidgetRef {
   openChat: () => void;
 }
 
-const ChatWidget = forwardRef<ChatWidgetRef>((props, ref) => {
+const ChatWidget = forwardRef<ChatWidgetRef>((_props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
