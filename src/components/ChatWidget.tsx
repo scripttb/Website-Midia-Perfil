@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +11,16 @@ interface Message {
   timestamp: Date;
 }
 
-const ChatWidget: React.FC = () => {
+export interface ChatWidgetRef {
+  openChat: () => void;
+}
+
+const ChatWidget = forwardRef<ChatWidgetRef>((props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá! Sou a Ana, assistente virtual da Mídia Perfil. Estou aqui para ajudá-lo com informações sobre nossas soluções de IA e responder suas dúvidas. Como posso ajudá-lo hoje?',
+      text: 'Olá! Sou um agente virtual da Mídia Perfil. Estou aqui para ajudá-lo com informações sobre nossas soluções de IA e responder suas dúvidas. Como posso ajudá-lo hoje?',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -24,6 +28,10 @@ const ChatWidget: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    openChat: () => setIsOpen(true)
+  }));
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,88 +56,160 @@ const ChatWidget: React.FC = () => {
     setIsTyping(true);
 
     try {
+      // Logs para debug
+      console.log('🚀 Enviando mensagem para n8n:', text);
+      console.log('📡 URL do webhook:', 'https://n8n.midiaperfil.com/webhook-test/bfce9da3-f8bb-4d88-a651-5ff80a7d5cd4');
+      
+      const payload = {
+        message: text,
+        timestamp: new Date().toISOString(),
+        sessionId: 'chat-session-' + Date.now(),
+        source: 'website-chat',
+        userAgent: navigator.userAgent
+      };
+      
+      console.log('📦 Payload enviado:', payload);
+      
       // Enviar para o webhook real
-      const response = await fetch('https://webhook.midiaperfil.com/webhook/3050beca-f724-4dfa-9943-64b8bff1e02f', {
+      const response = await fetch('https://webhook.midiaperfil.com/webhook/bfce9da3-f8bb-4d88-a651-5ff80a7d5cd4', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message: text,
-          timestamp: new Date().toISOString(),
-          sessionId: 'chat-session-' + Date.now(),
-          source: 'website-chat',
-          userAgent: navigator.userAgent
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log('📊 Status da resposta:', response.status);
+      console.log('✅ Response OK:', response.ok);
+      console.log('🔍 Headers da resposta:', Object.fromEntries(response.headers.entries()));
+
       if (response.ok) {
-        const data = await response.json();
+        console.log('🎯 Resposta bem-sucedida! Processando dados...');
+        
+        const rawText = await response.text();
+        console.log('📄 Texto bruto recebido:', rawText);
+        
+        let data;
+        try {
+          data = JSON.parse(rawText);
+          console.log('📥 JSON parseado:', data);
+        } catch (parseError) {
+          console.error('❌ Erro ao fazer parse do JSON:', parseError);
+          console.log('📝 Usando texto bruto como resposta');
+          data = { response: rawText };
+        }
+        
+        // Extrair a resposta do webhook - suporta diferentes formatos
+        let responseText = '';
+        
+        console.log('🔍 Estrutura completa do JSON recebido:', JSON.stringify(data, null, 2));
+        
+        if (data.output) {
+          responseText = data.output;
+          console.log('✅ Usando data.output:', responseText);
+        } else if (data.response) {
+          responseText = data.response;
+          console.log('✅ Usando data.response:', responseText);
+        } else if (data.message) {
+          responseText = data.message;
+          console.log('✅ Usando data.message:', responseText);
+        } else if (data.text) {
+          responseText = data.text;
+          console.log('✅ Usando data.text:', responseText);
+        } else if (data.reply) {
+          responseText = data.reply;
+          console.log('✅ Usando data.reply:', responseText);
+        } else if (data.answer) {
+          responseText = data.answer;
+          console.log('✅ Usando data.answer:', responseText);
+        } else if (typeof data === 'string') {
+          responseText = data;
+          console.log('✅ Usando string direta:', responseText);
+        } else if (data.data && data.data.response) {
+          responseText = data.data.response;
+          console.log('✅ Usando data.data.response:', responseText);
+        } else {
+          responseText = 'Desculpe, não consegui processar sua mensagem. Tente novamente.';
+          console.log('⚠️ Usando resposta padrão. Estrutura recebida:', JSON.stringify(data, null, 2));
+        }
+        
+        console.log('💬 Resposta final extraída:', responseText);
+        console.log('🚀 Adicionando mensagem ao chat...');
         
         // Usar a resposta do webhook
         const botResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: data.response || data.message || 'Obrigado pela sua mensagem! Nossa equipe entrará em contato em breve.',
+          text: responseText,
           sender: 'bot',
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, botResponse]);
+        
+        console.log('📨 Objeto da mensagem criado:', botResponse);
+        
+        setMessages(prev => {
+          const newMessages = [...prev, botResponse];
+          console.log('📋 Lista de mensagens atualizada:', newMessages);
+          return newMessages;
+        });
+        
+        console.log('✅ Mensagem adicionada com sucesso!');
+        console.log('🔄 Estado atual de isTyping:', isTyping);
+        console.log('📊 Total de mensagens agora:', messages.length + 1);
       } else {
-        // Fallback para resposta local se webhook falhar
-        const botResponse: Message = {
+        console.log('❌ Webhook falhou - Status:', response.status);
+        const errorText = await response.text();
+        console.log('🔍 Erro do servidor:', errorText);
+        
+        // Verificar se é erro 404 (webhook não registrado)
+        let errorMessage = 'Desculpe, ocorreu um erro. Tente novamente em alguns instantes.';
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.code === 404 && errorData.message.includes('not registered')) {
+            errorMessage = 'O serviço está temporariamente indisponível. Nossa equipe já foi notificada e está trabalhando para resolver o problema.';
+            console.log('⚠️ Webhook não está registrado - workflow precisa estar ativo');
+          }
+        } catch (parseError) {
+          console.log('📝 Erro não é JSON válido, usando mensagem padrão');
+        }
+        
+        // Mostrar mensagem de erro ao usuário
+        const errorResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: getBotResponse(text),
+          text: errorMessage,
           sender: 'bot',
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, botResponse]);
+        
+        setMessages(prev => [...prev, errorResponse]);
       }
       
       setIsTyping(false);
 
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('🚨 Erro na requisição:', error);
       
-      // Fallback para resposta local em caso de erro
-      const botResponse: Message = {
+      // Fallback para quando o webhook está completamente indisponível
+      let fallbackMessage = 'Desculpe, estou temporariamente indisponível. ';
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        fallbackMessage += 'Verifique sua conexão com a internet e tente novamente.';
+        console.log('🌐 Erro de conectividade detectado');
+      } else {
+        fallbackMessage += 'Nossa equipe técnica já foi notificada. Tente novamente em alguns minutos.';
+        console.log('⚠️ Erro desconhecido na requisição');
+      }
+      
+      const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: getBotResponse(text),
+        text: fallbackMessage,
         sender: 'bot',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, botResponse]);
+      
+      setMessages(prev => [...prev, fallbackResponse]);
       setIsTyping(false);
     }
-  };
-
-  const getBotResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    
-    if (message.includes('preço') || message.includes('custo') || message.includes('valor')) {
-      return 'Nossos preços são personalizados de acordo com as necessidades da sua empresa. Posso coletar algumas informações para preparar uma proposta personalizada. Qual o nome da sua empresa?';
-    }
-    
-    if (message.includes('como funciona') || message.includes('funcionamento')) {
-      return 'Nossa solução integra seu website com agentes de IA que trabalham 24/7, automatizando atendimento, captação de leads e recuperação de clientes. Posso explicar como isso funcionaria especificamente para seu negócio!';
-    }
-    
-    if (message.includes('demonstração') || message.includes('demo') || message.includes('agendar')) {
-      return 'Perfeito! Vou agendar uma demonstração personalizada para você. Por favor, me informe: 1) Nome da empresa, 2) Seu nome, 3) Email, 4) Telefone. Assim posso preparar uma apresentação específica para suas necessidades.';
-    }
-    
-    if (message.includes('whatsapp') || message.includes('instagram') || message.includes('facebook')) {
-      return 'Excelente pergunta! Nossa solução integra com WhatsApp Business, Instagram Direct, Facebook Messenger, email e seu website, centralizando todo o atendimento em uma única plataforma inteligente com IA.';
-    }
-    
-    if (message.includes('contato') || message.includes('falar') || message.includes('conversar')) {
-      return 'Estou aqui para isso! Sou a Ana e posso ajudar com todas suas dúvidas sobre nossas soluções de IA. O que gostaria de saber? Preços, funcionamento, demonstração ou algo específico?';
-    }
-    
-    if (message.includes('email') || message.includes('@')) {
-      return 'Obrigada pelas informações! Nossa equipe entrará em contato em breve. Enquanto isso, posso responder mais alguma dúvida sobre nossas soluções de IA?';
-    }
-    
-    return 'Entendo! Como a Ana, estou aqui para ajudar com qualquer dúvida sobre nossas soluções de IA para empresas. Posso explicar sobre preços, funcionamento, agendar uma demonstração ou responder questões específicas. O que te interessa mais?';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -141,13 +221,13 @@ const ChatWidget: React.FC = () => {
     <>
       {/* Chat Button */}
       <div className="fixed bottom-6 right-6 z-50">
-        <Button
+        <div
           onClick={() => setIsOpen(!isOpen)}
-          size="lg"
-          className="rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+          className="cursor-pointer w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse bg-white flex items-center justify-center"
+          title="Converse com um Agente - Sua assistente virtual está pronta para ajudar!"
         >
-          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-        </Button>
+          {isOpen ? <X className="h-6 w-6" /> : <img src="/ana-avatar.svg" alt="Agente" className="h-12 w-12 rounded-full" />}
+        </div>
       </div>
 
       {/* Chat Window */}
@@ -156,8 +236,8 @@ const ChatWidget: React.FC = () => {
           <Card className="shadow-2xl border-0 bg-white dark:bg-gray-900">
             <CardHeader className="bg-primary text-white rounded-t-lg">
               <CardTitle className="flex items-center space-x-2">
-                <Bot className="h-5 w-5" />
-                <span>Ana - Assistente IA</span>
+                <img src="/ana-avatar.svg" alt="Agente" className="h-6 w-6 rounded-full" />
+                <span>Agente Virtual</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -177,7 +257,7 @@ const ChatWidget: React.FC = () => {
                     >
                       <div className="flex items-start space-x-2">
                         {message.sender === 'bot' && (
-                          <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          <img src="/ana-avatar.svg" alt="Agente" className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5" />
                         )}
                         {message.sender === 'user' && (
                           <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -200,7 +280,7 @@ const ChatWidget: React.FC = () => {
                   <div className="flex justify-start">
                     <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <Bot className="h-4 w-4" />
+                        <img src="/ana-avatar.svg" alt="Agente" className="h-5 w-5 rounded-full" />
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -234,6 +314,8 @@ const ChatWidget: React.FC = () => {
       )}
     </>
   );
-};
+});
+
+ChatWidget.displayName = 'ChatWidget';
 
 export default ChatWidget;

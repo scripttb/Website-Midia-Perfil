@@ -5,9 +5,10 @@ import { Moon, Sun, Menu, X } from 'lucide-react';
 interface HeaderProps {
   darkMode: boolean;
   toggleDarkMode: () => void;
+  openChat: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
+const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode, openChat }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
@@ -54,6 +55,12 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
             >
               Soluções
             </button>
+            <button
+              onClick={() => scrollToSection('contato')}
+              className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors"
+            >
+              Contato
+            </button>
           </nav>
 
           {/* Actions */}
@@ -67,8 +74,8 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
 
-            <Button className="hidden sm:inline-flex">
-              Fale com a Ana
+            <Button className="hidden sm:inline-flex" onClick={openChat}>
+              Fale com um Agente
             </Button>
 
             {/* Mobile menu button */}
@@ -105,9 +112,15 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleDarkMode }) => {
               >
                 Soluções
               </button>
+              <button
+                onClick={() => scrollToSection('contato')}
+                className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors w-full text-left"
+              >
+                Contato
+              </button>
               <div className="px-3 py-2">
-                <Button className="w-full">
-                  Fale com a Ana
+                <Button className="w-full" onClick={openChat}>
+                  Fale com um Agente
                 </Button>
               </div>
             </div>

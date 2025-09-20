@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ChatWidget from './components/ChatWidget';
 import Benefits from './components/Benefits';
 import About from './components/About';
+import ContactForm from './components/ContactForm';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const chatWidgetRef = useRef<{ openChat: () => void }>(null);
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -16,9 +18,8 @@ function App() {
     if (savedDarkMode) {
       setDarkMode(JSON.parse(savedDarkMode));
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setDarkMode(prefersDark);
+      // Set dark mode as default
+      setDarkMode(true);
     }
   }, []);
 
@@ -37,17 +38,22 @@ function App() {
     setDarkMode(!darkMode);
   };
 
+  const openChat = () => {
+    chatWidgetRef.current?.openChat();
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} openChat={openChat} />
       <main>
         <Hero />
         <Benefits />
         <About />
+        <ContactForm />
         <FAQ />
       </main>
       <Footer />
-      <ChatWidget />
+      <ChatWidget ref={chatWidgetRef} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Bot, Globe, Zap } from 'lucide-react';
+import { ArrowRight, Bot, Globe, Zap, User } from 'lucide-react';
 
 const Hero: React.FC = () => {
   const scrollToSection = (sectionId: string) => {
@@ -76,6 +76,19 @@ const Hero: React.FC = () => {
                   </h3>
                 </div>
 
+                {/* Cliente */}
+                <div className="flex items-center justify-center">
+                  <div className="bg-orange-100 dark:bg-orange-900/30 rounded-lg p-4 flex items-center space-x-3">
+                    <User className="h-8 w-8 text-orange-600" />
+                    <span className="font-medium text-gray-900 dark:text-white">Cliente</span>
+                  </div>
+                </div>
+
+                {/* Connection Line */}
+                <div className="flex justify-center">
+                  <div className="w-px h-8 bg-gradient-to-b from-orange-600 to-primary"></div>
+                </div>
+
                 {/* Website */}
                 <div className="flex items-center justify-center">
                   <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-4 flex items-center space-x-3">
@@ -86,7 +99,7 @@ const Hero: React.FC = () => {
 
                 {/* Connection Line */}
                 <div className="flex justify-center">
-                  <div className="w-px h-8 bg-gradient-to-b from-primary to-transparent"></div>
+                  <div className="w-px h-8 bg-gradient-to-b from-primary to-primary"></div>
                 </div>
 
                 {/* AI Agent */}
@@ -99,14 +112,14 @@ const Hero: React.FC = () => {
 
                 {/* Connection Line */}
                 <div className="flex justify-center">
-                  <div className="w-px h-8 bg-gradient-to-b from-primary to-transparent"></div>
+                  <div className="w-px h-8 bg-gradient-to-b from-primary to-green-600"></div>
                 </div>
 
-                {/* Automation */}
+                {/* Response back to Cliente */}
                 <div className="flex items-center justify-center">
                   <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-4 flex items-center space-x-3">
                     <Zap className="h-8 w-8 text-green-600" />
-                    <span className="font-medium text-gray-900 dark:text-white">Automação</span>
+                    <span className="font-medium text-gray-900 dark:text-white">Resposta ao Cliente</span>
                   </div>
                 </div>
               </div>
